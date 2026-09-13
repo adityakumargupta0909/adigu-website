@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0a0a0a">
+<title>ADIGU — We Build What's Next.</title>
+<meta name="description" content="ADIGU is an independent technology company building digital products, applications and experiences.">
+
+<meta property="og:title" content="ADIGU — We Build Next.">
+<meta property="og:description" content="ADIGU is an independent technology company building digital products, applications and experiences.">
+<meta property="og:type" content="website">
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="ADIGU — We Build Next.">
+<meta name="twitter:description" content="ADIGU is an independent technology company building digital products, applications and experiences.">
+
+<link rel="icon" type="image/png" href="assets/adigu-logo-black.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+/* ==========================================================================
+   ADIGU — design tokens
+   ========================================================================== */
+:root{
+  --bg:            #0a0a0a;
+  --line:          #262626;
+  --line-strong:   #3a3a3a;
+  --ink:           #f2f1ec;
+  --ink-dim:       #8f8f8a;
+  --ink-faint:     #4a4a46;
+
+  --font-display: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --font-body:    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+
+  --container: 1180px;
+  --gutter: 32px;
+
+  --ease: cubic-bezier(.16,.84,.44,1);
+  --dur-s: .25s;
+  --dur-m: .6s;
+}
+@media (max-width: 640px){ :root{ --gutter: 20px; } }
+
+/* ---- reset ---- */
+*, *::before, *::after{ box-sizing: border-box; }
+html{ background: var(--bg); scroll-behavior: smooth; }
+body{
+  margin:0; background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.5;
+  -webkit-font-smoothing: antialiased; overflow-x: hidden;
+}
+img{ max-width:100%; display:block; }
+a{ color: inherit; text-decoration:none; }
+button{ font: inherit; color: inherit; background:none; border:0; cursor:pointer; }
+input, textarea{ font: inherit; color: inherit; }
+ul{ list-style:none; margin:0; padding:0; }
+h1,h2,h3,p{ margin:0; }
+svg{ display:block; }
+.mono{ font-family: var(--font-mono); letter-spacing: .06em; }
+::selection{ background: var(--ink); color: var(--bg); }
+:focus-visible{ outline: 1.5px solid var(--ink); outline-offset: 3px; }
+
+.skip-link{
+  position: fixed; top:-100px; left: 16px; z-index: 999;
+  background: var(--ink); color: var(--bg); padding: 10px 16px;
+  transition: top .2s var(--ease);
+}
+.skip-link:focus{ top: 16px; }
+
+.grain{
+  position: fixed; inset:0; pointer-events:none; z-index: 3;
+  opacity: .035; mix-blend-mode: overlay;
+  background-image:
+    radial-gradient(circle at 20% 30%, #fff 0.5px, transparent 0.5px),
+    radial-gradient(circle at 60% 70%, #fff 0.5px, transparent 0.5px),
+    radial-gradient(circle at 85% 15%, #fff 0.5px, transparent 0.5px);
+  background-size: 3px 3px, 5px 5px, 4px 4px;
+}
+
+/* ==========================================================================
+   Loading / entrance — pure CSS, works even if JS is disabled
+   ========================================================================== */
+.loader{
+  position: fixed; inset:0; z-index: 100;
+  background: var(--bg);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap: 18px;
+  animation: loader-out .5s var(--ease) 1.3s forwards;
+}
+.loader-mark{ width: 46px; height: 46px; opacity:0; animation: loader-fade .5s var(--ease) .1s forwards; }
+.loader-word{
+  font-family: var(--font-display); font-weight:700; letter-spacing: .04em;
+  font-size: 1.6rem; text-transform: uppercase;
+  opacity:0; animation: loader-fade .5s var(--ease) .25s forwards;
+}
+.loader-status{
+  font-family: var(--font-mono); font-size: 11px; letter-spacing:.15em;
+  color: var(--ink-faint); text-transform:uppercase;
+  opacity:0; animation: loader-fade .5s var(--ease) .45s forwards;
+}
+.loader-bar{
+  width: 160px; height: 1px; background: var(--line); margin-top: 6px; overflow:hidden;
+}
+.loader-bar::after{
+  content:""; display:block; height:100%; width:100%; background: var(--ink);
+  transform: translateX(-100%);
+  animation: loader-bar .9s var(--ease) .35s forwards;
+}
+@keyframes loader-fade{ to{ opacity:1; } }
+@keyframes loader-bar{ to{ transform: translateX(0); } }
+@keyframes loader-out{ to{ opacity:0; visibility:hidden; pointer-events:none; } }
+
+@media (prefers-reduced-motion: reduce){
+  .loader{ animation: loader-out .01s linear .05s forwards; }
+  .loader-mark, .loader-word, .loader-status{ animation: none; opacity:1; }
+  .loader-bar::after{ animation:none; transform:none; }
+}
+
+/* ==========================================================================
+   Custom cursor (desktop only)
+   ========================================================================== */
+.cursor-dot, .cursor-ring{
+  position: fixed; top:0; left:0; pointer-events:none; z-index: 60;
+  transform: translate(-50%,-50%); will-change: transform;
+}
+.cursor-dot{ width:5px; height:5px; border-radius:50%; background: var(--ink); transition: opacity .2s; }
+.cursor-ring{
+  width:38px; height:38px; border-radius:50%; border:1px solid var(--line-strong);
+  display:flex; align-items:center; justify-content:center;
+  transition: width .25s var(--ease), height .25s var(--ease), border-color .25s var(--ease), background .25s var(--ease), opacity .2s;
+  opacity: 0;
+}
+.cursor-ring.is-active{ opacity: 1; }
+.cursor-ring.is-hover{ width:64px; height:64px; border-color: var(--ink); }
+.cursor-ring.is-view{ width: 84px; height: 84px; background: var(--ink); border-color: var(--ink); }
+.cursor-label{ font-family: var(--font-mono); font-size: 10px; letter-spacing:.1em; color: var(--bg); opacity:0; transition: opacity .15s; }
+.cursor-ring.is-view .cursor-label{ opacity: 1; }
+@media (hover:none), (pointer:coarse){ .cursor-dot, .cursor-ring{ display:none; } }
+
+/* ==========================================================================
+   Layout helpers
+   ========================================================================== */
+section{ padding: 120px var(--gutter); position: relative; border-top: 1px solid var(--line); }
+@media (max-width: 780px){ section{ padding: 80px var(--gutter); } }
+.section-head{ max-width: var(--container); margin: 0 auto 64px; }
+.eyebrow{ font-size: 11px; color: var(--ink-dim); margin-bottom: 18px; text-transform: uppercase; }
+.section-heading{
+  font-family: var(--font-display); font-weight: 700; letter-spacing: -0.02em; line-height: .98;
+  font-size: clamp(2.2rem, 5.4vw, 4.4rem); text-transform: uppercase;
+}
+.section-sub{ margin-top: 20px; max-width: 46ch; color: var(--ink-dim); font-size: 1.05rem; line-height: 1.6; }
+
+.btn{
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 16px 30px; border-radius: 999px; font-size: .85rem; font-weight: 600; letter-spacing: .02em;
+  transition: transform var(--dur-s) var(--ease), background var(--dur-s) var(--ease);
+}
+.btn-primary{ background: var(--ink); color: var(--bg); }
+.btn-primary:hover{ transform: translateY(-2px); }
+.btn::after{ content: "↗"; font-size: .9em; transition: transform var(--dur-s) var(--ease); }
+.btn:hover::after{ transform: translate(2px,-2px); }
+
+.meta-list{ display:flex; flex-wrap: wrap; gap: 10px 22px; font-size: 10px; color: var(--ink-dim); text-transform: uppercase; }
+.meta-list li::before{ content:"— "; color: var(--ink-faint); }
+.meta-list li:first-child::before{ content:""; }
+
+.reveal{ opacity: 0; transform: translateY(24px); transition: opacity .8s var(--ease), transform .8s var(--ease); }
+.reveal.is-visible{ opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce){ .reveal{ opacity:1; transform:none; transition:none; } }
+
+/* ==========================================================================
+   Nav
+   ========================================================================== */
+.nav{
+  position: fixed; top:0; left:0; right:0; z-index: 50;
+  padding: 22px var(--gutter);
+  display:flex; align-items:center; justify-content:space-between;
+  transition: background var(--dur-s) var(--ease), border-color var(--dur-s) var(--ease), padding var(--dur-s) var(--ease), backdrop-filter var(--dur-s) var(--ease);
+  border-bottom: 1px solid transparent;
+}
+.nav.is-scrolled{
+  background: rgba(10,10,10,.82); backdrop-filter: blur(10px);
+  border-bottom-color: var(--line); padding-top: 16px; padding-bottom: 16px;
+}
+.nav-inner{ width:100%; max-width: 1400px; margin: 0 auto; display:flex; align-items:center; justify-content:flex-end; position: relative; }
+.nav-logo{
+  display:flex; align-items:center;
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+}
+.nav-logo img{ height:26px; width:auto; object-fit:contain; transition: height var(--dur-s) var(--ease); }
+.nav.is-scrolled .nav-logo img{ height:22px; }
+@media (max-width: 640px){ .nav-logo img{ height:20px; max-width: 130px; } }
+.nav-links{ display:flex; gap: 36px; }
+.nav-links a{ font-size: .82rem; color: var(--ink-dim); transition: color var(--dur-s) var(--ease); }
+.nav-links a:hover{ color: var(--ink); }
+
+.nav-toggle{ display:none; flex-direction:column; gap:5px; width:26px; }
+.nav-toggle span{ height:1px; width:100%; background: var(--ink); transition: transform .25s var(--ease); }
+.nav-toggle[aria-expanded="true"] span:first-child{ transform: translateY(3px) rotate(45deg); }
+.nav-toggle[aria-expanded="true"] span:last-child{ transform: translateY(-3px) rotate(-45deg); }
+
+.nav-mobile{
+  display:none; position: absolute; top: 100%; left:0; right:0; background: var(--bg);
+  border-bottom: 1px solid var(--line); flex-direction: column; padding: 8px var(--gutter) 24px;
+}
+.nav-mobile.is-open{ display:flex; }
+.nav-mobile a{ padding: 14px 0; border-top: 1px solid var(--line); font-size: 1rem; }
+
+@media (max-width: 780px){ .nav-links{ display:none; } .nav-toggle{ display:flex; } }
+
+/* ==========================================================================
+   Hero
+   ========================================================================== */
+.hero{
+  min-height: 100svh; display:flex; flex-direction:column; justify-content:flex-end;
+  padding: 140px var(--gutter) 100px; position: relative; overflow:hidden; border-top:none;
+}
+.hero-grid{
+  position:absolute; inset:0;
+  background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 64px 64px; opacity: .35;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, #000 10%, transparent 75%);
+}
+.hero-scanline{
+  position:absolute; left:0; right:0; height:1px; background: linear-gradient(90deg, transparent, var(--ink-faint), transparent);
+  opacity:.5; animation: scan 7s linear infinite;
+}
+@keyframes scan{ 0%{ top:0%; } 100%{ top:100%; } }
+@media (prefers-reduced-motion: reduce){ .hero-scanline{ display:none; } }
+
+.hero-inner{ max-width: 980px; position: relative; }
+.hero-kicker{ font-size: 11px; color: var(--ink-dim); margin-bottom: 26px; text-transform: uppercase; }
+.hero-headline{
+  font-family: var(--font-display); font-weight: 700; text-transform: uppercase;
+  letter-spacing: -0.03em; line-height: .92; font-size: clamp(3rem, 10vw, 7.2rem);
+}
+.hero-headline span{ display:block; overflow:hidden; }
+.hero-headline span em{ display:block; font-style:normal; transform: translateY(110%); animation: rise .9s var(--ease) forwards; }
+.hero-headline span:nth-child(2) em{ animation-delay: .1s; }
+@keyframes rise{ to{ transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce){ .hero-headline span em{ animation: none; transform:none; } }
+
+.hero-sub{ margin-top: 28px; max-width: 44ch; color: var(--ink-dim); font-size: 1.1rem; line-height: 1.6; }
+.hero-cta{ margin-top: 40px; }
+.hero-tags{ margin-top: 90px; display:flex; flex-wrap:wrap; gap: 8px 26px; font-size: 10px; color: var(--ink-faint); text-transform: uppercase; }
+.hero-coord{ position:absolute; top: 150px; right: var(--gutter); font-size:10px; color:var(--ink-faint); text-align:right; }
+.hero-scroll{
+  position:absolute; bottom: 36px; left:50%; transform: translateX(-50%);
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+  font-size: 10px; color: var(--ink-faint); text-transform: uppercase;
+}
+.hero-scroll svg{ animation: bob 1.8s ease-in-out infinite; }
+@keyframes bob{ 0%,100%{ transform: translateY(0);} 50%{ transform: translateY(4px);} }
+@media (prefers-reduced-motion: reduce){ .hero-scroll svg{ animation:none; } }
+@media (max-width: 640px){
+  .hero{ padding-top: 120px; }
+  .hero-tags{ margin-top: 60px; }
+  .hero-scroll, .hero-coord{ display:none; }
+}
+
+/* ==========================================================================
+   Marquee
+   ========================================================================== */
+.marquee-section{ padding: 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); overflow:hidden; }
+.marquee{ position:relative; width:100%; overflow:hidden; }
+.marquee-track{ display:flex; width: max-content; animation: scroll-left 34s linear infinite; }
+.marquee:hover .marquee-track{ animation-play-state: paused; }
+@keyframes scroll-left{ to{ transform: translateX(-50%); } }
+.marquee-item{
+  font-family: var(--font-display); font-weight: 700; text-transform: uppercase;
+  font-size: clamp(2.2rem, 6vw, 4.2rem); padding: 26px 40px; white-space: nowrap; color: var(--ink-faint);
+  display:flex; align-items:center; gap:40px;
+}
+.marquee-item:nth-child(odd){ color: var(--ink); }
+.marquee-item::after{ content:"◆"; font-size: .28em; margin-left: 40px; color: var(--ink-faint); }
+@media (prefers-reduced-motion: reduce){ .marquee-track{ animation: none; overflow-x:auto; } }
+
+/* ==========================================================================
+   Beliefs
+   ========================================================================== */
+.belief-item{
+  max-width: var(--container); margin: 0 auto; display: grid; grid-template-columns: 100px 1fr;
+  gap: 32px; padding: 44px 0; border-top: 1px solid var(--line); transition: background var(--dur-m) var(--ease);
+}
+.beliefs-list .belief-item:last-child{ border-bottom: 1px solid var(--line); }
+.belief-number{ font-family: var(--font-mono); font-size: .95rem; color: var(--ink-faint); transition: color var(--dur-s) var(--ease); }
+.belief-body{ max-width: 620px; }
+.belief-title{ font-family: var(--font-display); font-weight:700; text-transform: uppercase; font-size: clamp(1.4rem, 3vw, 2rem); letter-spacing: -.01em; margin-bottom: 14px; }
+.belief-text{ color: var(--ink-dim); line-height: 1.65; max-width: 56ch; }
+.belief-item:hover{ background: rgba(255,255,255,.02); }
+.belief-item:hover .belief-number{ color: var(--ink); }
+@media (max-width: 640px){ .belief-item{ grid-template-columns: 1fr; gap: 12px; } }
+
+/* ==========================================================================
+   Fronts / ecosystem
+   ========================================================================== */
+.company-strip{
+  max-width: var(--container); margin: 0 auto 8px; display:flex; align-items:flex-start; gap: 40px;
+  padding-bottom: 56px; border-bottom: 1px solid var(--line);
+}
+.company-strip-mark{ width: 56px; flex-shrink:0; padding-top: 6px; opacity:.9; }
+.company-name{ font-family: var(--font-display); font-weight:700; letter-spacing:-.01em; font-size: clamp(1.4rem, 3vw, 2rem); text-transform: uppercase; }
+.company-tag{ color: var(--ink-dim); margin-top: 8px; }
+.company-strip .meta-list{ margin-top: 22px; }
+@media (max-width: 640px){ .company-strip{ flex-direction:column; gap: 18px; } .company-strip-mark{ width: 40px; } }
+
+.product-list{ max-width: var(--container); margin: 0 auto; }
+.product-row{
+  display:grid; grid-template-columns: 70px 1.1fr 1fr auto; align-items:center; gap: 28px;
+  padding: 38px 0; border-bottom: 1px solid var(--line); cursor: pointer; position: relative;
+}
+.product-row .p-index{ font-family: var(--font-mono); color: var(--ink-faint); font-size: .85rem; }
+.product-row .p-name{
+  font-family: var(--font-display); font-weight: 700; text-transform: uppercase;
+  font-size: clamp(1.5rem, 3.4vw, 2.4rem); letter-spacing: -.01em; white-space: pre-line; line-height: 1.02;
+  transition: transform var(--dur-m) var(--ease);
+}
+.product-row .p-details{ min-width:0; }
+.product-row .p-category{ font-family: var(--font-mono); font-size: 10px; color: var(--ink-dim); text-transform: uppercase; margin-bottom: 8px; }
+.product-row .p-desc{ color: var(--ink-dim); font-size: .95rem; max-width: 42ch; line-height:1.55; }
+.product-row .p-status{ display:flex; align-items:center; gap:8px; font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; color: var(--ink-faint); justify-self:end; }
+.status-dot{ width:6px; height:6px; border-radius:50%; background: var(--ink-faint); }
+.status-dot.is-live{ background:#f2f1ec; }
+.status-dot.is-building{ animation: pulse 1.6s ease-in-out infinite; background:#c9c9c2; }
+.status-dot.is-experiment{ background: var(--ink-faint); }
+.status-dot.is-classified{ background: transparent; border:1px solid var(--ink-faint); }
+@keyframes pulse{ 0%,100%{ opacity:1;} 50%{ opacity:.3;} }
+.product-row:hover .p-name{ transform: translateX(10px); }
+.product-row:hover{ background: rgba(255,255,255,.02); }
+@media (max-width: 860px){
+  .product-row{ grid-template-columns: 40px 1fr; grid-template-areas: "idx name" ". details" ". status"; row-gap: 10px; }
+  .product-row .p-index{ grid-area: idx; } .product-row .p-name{ grid-area: name; }
+  .product-row .p-details{ grid-area: details; } .product-row .p-status{ grid-area: status; justify-self:start; }
+}
+
+.product-preview{
+  position: fixed; top:0; left:0; z-index: 55; width: 220px; height: 150px; pointer-events:none;
+  border-radius: 4px; overflow:hidden; opacity: 0; transform: translate(-50%,-50%) scale(.9);
+  transition: opacity .25s var(--ease), transform .25s var(--ease);
+  border: 1px solid var(--line-strong); display:flex; align-items:center; justify-content:center;
+}
+.product-preview.is-active{ opacity: 1; transform: translate(-50%,-50%) scale(1); }
+.product-preview-label{ font-family: var(--font-mono); font-size: 10px; letter-spacing:.1em; color: var(--ink-faint); text-transform:uppercase; }
+@media (max-width: 860px){ .product-preview{ display:none; } }
+
+/* per-product abstract visual placeholders */
+.pv-leverlerz{ background: repeating-linear-gradient(45deg, #141414 0 3px, #0a0a0a 3px 22px); }
+.pv-form-editor{ background: repeating-linear-gradient(0deg, #141414 0 1px, #0a0a0a 1px 14px), repeating-linear-gradient(90deg, #141414 0 1px, transparent 1px 14px); }
+.pv-arthhai{ background: linear-gradient(180deg, #0a0a0a 0%, #141414 100%); }
+.pv-arthhai::before{ content:""; position:absolute; inset:0; background: repeating-linear-gradient(100deg, transparent 0 18px, rgba(255,255,255,.05) 18px 19px); }
+.pv-chequers{ background: radial-gradient(circle at 30% 30%, #161616, #0a0a0a 70%); }
+.pv-next{ background: #0a0a0a; border: 1px dashed var(--line-strong); }
+
+/* ==========================================================================
+   Services grid
+   ========================================================================== */
+.services-head{ display:flex; justify-content:space-between; align-items:flex-end; gap: 40px; flex-wrap:wrap; }
+.services-sub{ margin-top:0; text-align:right; }
+.services-grid{ max-width: var(--container); margin: 0 auto; display:grid; grid-template-columns: repeat(2, 1fr); border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+.service-item{ padding: 40px 36px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); transition: background var(--dur-m) var(--ease); }
+.service-item:hover{ background: rgba(255,255,255,.02); }
+.service-number{ font-family: var(--font-mono); font-size: .8rem; color: var(--ink-faint); margin-bottom: 26px; }
+.service-title{ font-family: var(--font-display); font-weight:700; text-transform:uppercase; font-size: 1.3rem; letter-spacing:-.005em; margin-bottom: 12px; }
+.service-text{ color: var(--ink-dim); line-height:1.6; max-width: 40ch; }
+@media (max-width: 780px){ .services-sub{ text-align:left; } .services-grid{ grid-template-columns: 1fr; } }
+
+/* ==========================================================================
+   Building grid
+   ========================================================================== */
+.building-grid{ max-width: var(--container); margin: 0 auto; display:grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); }
+.building-card{ background: var(--bg); padding: 0 0 26px; position:relative; overflow:hidden; }
+.building-card-media{ aspect-ratio: 4/3; position:relative; overflow:hidden; }
+.building-card-media::after{ content:""; position:absolute; inset:0; background: radial-gradient(circle at 30% 20%, rgba(255,255,255,.05), transparent 60%); }
+.building-card-body{ padding: 22px 26px 0; }
+.building-card-top{ display:flex; justify-content:space-between; align-items:flex-start; }
+.building-status{ font-family: var(--font-mono); font-size: 9px; letter-spacing:.1em; color: var(--ink-faint); text-transform:uppercase; }
+.building-index{ font-family: var(--font-mono); font-size: .85rem; color: var(--ink-faint); }
+.building-name{ font-family: var(--font-display); font-weight:700; text-transform:uppercase; font-size: 1.15rem; margin-top: 10px; }
+.building-desc{ color: var(--ink-dim); font-size: .88rem; line-height:1.5; margin-top:8px; }
+@media (max-width: 900px){ .building-grid{ grid-template-columns: repeat(2,1fr); } }
+@media (max-width: 600px){ .building-grid{ grid-template-columns: 1fr; } }
+
+/* ==========================================================================
+   Philosophy
+   ========================================================================== */
+.philosophy{ min-height: 100vh; display:flex; align-items:center; justify-content:center; text-align:center; padding: 100px var(--gutter); }
+.philosophy-inner{ max-width: 900px; }
+.philosophy-line{
+  font-family: var(--font-display); font-weight:700; text-transform:uppercase; letter-spacing:-.03em; line-height: 1.02;
+  font-size: clamp(2.2rem, 7vw, 4.6rem); opacity: .12; transition: opacity 1s var(--ease), transform 1s var(--ease); transform: translateY(10px);
+}
+.philosophy-line--out.is-visible{ opacity:.2; }
+.philosophy-line--in{ margin-top: 6px; opacity: 0; }
+.philosophy-line--in.is-visible{ opacity: 1; transform:none; }
+.philosophy-sub{ margin-top: 56px; color: var(--ink-dim); font-size: 1.1rem; line-height: 1.9; opacity:0; transform: translateY(14px); transition: opacity .9s var(--ease) .15s, transform .9s var(--ease) .15s; }
+.philosophy-sub.is-visible{ opacity:1; transform:none; }
+.philosophy-wordmark{
+  margin: 48px auto 0; display:block;
+  width: clamp(260px, 46vw, 560px); height:auto;
+  opacity:0; transition: opacity 1.1s var(--ease) .3s;
+}
+.philosophy-wordmark.is-visible{ opacity:.85; }
+
+/* ==========================================================================
+   Contact
+   ========================================================================== */
+.contact{ max-width: var(--container); margin: 0 auto; padding-left: var(--gutter); padding-right: var(--gutter); }
+.contact-heading{ font-family: var(--font-display); font-weight:700; text-transform:uppercase; letter-spacing:-.03em; line-height:.95; font-size: clamp(2.6rem, 7vw, 5rem); }
+.contact-meta{ margin-top: 40px; font-size: 11px; color: var(--ink-dim); }
+.contact .meta-list{ margin-top: 8px; margin-bottom: 56px; }
+.contact-form{ max-width: 720px; }
+.form-row{ display:grid; grid-template-columns: 1fr 1fr; gap: 0 40px; }
+@media (max-width: 640px){ .form-row{ grid-template-columns: 1fr; } }
+.field{ margin-bottom: 30px; }
+.field label{ display:block; font-family: var(--font-mono); font-size: 10px; text-transform:uppercase; color: var(--ink-dim); margin-bottom: 10px; letter-spacing:.08em; }
+.field input, .field textarea{
+  width:100%; background:transparent; border:0; border-bottom: 1px solid var(--line-strong);
+  padding: 10px 0; color: var(--ink); font-size: 1rem; transition: border-color var(--dur-s) var(--ease); resize: vertical;
+}
+.field input:focus, .field textarea:focus{ border-color: var(--ink); outline:none; }
+.field input::placeholder, .field textarea::placeholder{ color: var(--ink-faint); }
+.form-status{ margin-top: 20px; font-size: 11px; color: var(--ink-dim); min-height: 1em; }
+.form-status.is-success{ color: var(--ink); }
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+.footer{ border-top: 1px solid var(--line); padding: 90px var(--gutter) 32px; }
+.footer-top{ max-width: var(--container); margin: 0 auto 70px; }
+.footer-logo{ display:flex; align-items:center; gap:12px; margin-bottom: 20px; }
+.footer-logo img{ width:34px; height:34px; object-fit:contain; }
+.footer-logo span{ font-family: var(--font-display); font-weight:700; font-size:1.4rem; text-transform:uppercase; letter-spacing:.02em; }
+.footer-tagline{ color: var(--ink-dim); font-size: 1rem; }
+.footer-row{
+  max-width: var(--container); margin: 0 auto; padding-bottom: 60px;
+  display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap: 18px;
+  border-top: 1px solid var(--line); padding-top: 40px;
+}
+.footer-social-link{ font-size: .92rem; color: var(--ink-dim); transition: color var(--dur-s) var(--ease); }
+.footer-social-link:hover{ color: var(--ink); }
+.footer-links-inline{ display:flex; align-items:center; gap: 10px; font-size: .92rem; color: var(--ink-dim); }
+.footer-links-inline a{ color: var(--ink-dim); transition: color var(--dur-s) var(--ease); }
+.footer-links-inline a:hover{ color: var(--ink); }
+.footer-links-inline .footer-dot{ color: var(--ink-faint); }
+@media (max-width: 560px){ .footer-row{ flex-direction:column; align-items:flex-start; } }
+.footer-bottom{
+  max-width: var(--container); margin: 0 auto; display:flex; justify-content:space-between; flex-wrap:wrap; gap: 10px;
+  padding-top: 24px; border-top: 1px solid var(--line); font-size: 10px; color: var(--ink-faint); text-transform:uppercase;
+}
+</style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div class="loader" id="loader" aria-hidden="true">
+  <img class="loader-mark" src="assets/adigu-logo-white.png" alt="">
+  <div class="loader-word">ADIGU</div>
+  <div class="loader-status mono">System initializing</div>
+  <div class="loader-bar"></div>
+</div>
+
+<div class="grain" aria-hidden="true"></div>
+<div class="cursor-dot" aria-hidden="true"></div>
+<div class="cursor-ring" aria-hidden="true"><span class="cursor-label"></span></div>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<!-- NAVIGATION -->
+<header class="nav" id="nav">
+  <div class="nav-inner">
+    <a href="#top" class="nav-logo" aria-label="ADIGU — home">
+      <img src="assets/adigu-wordmark-white.png" alt="ADIGU">
+    </a>
+    <nav class="nav-links" id="nav-links" aria-label="Primary"></nav>
+    <button class="nav-toggle" id="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="nav-mobile">
+      <span></span><span></span>
+    </button>
+  </div>
+  <div class="nav-mobile" id="nav-mobile"></div>
+</header>
+
+<main id="main">
+
+  <!-- HERO -->
+  <section class="hero" id="top">
+    <div class="hero-grid" aria-hidden="true"></div>
+    <div class="hero-scanline" aria-hidden="true"></div>
+    <p class="hero-coord mono" aria-hidden="true">EST. 2026<br>SYSTEM / 001</p>
+    <div class="hero-inner">
+      <p class="hero-kicker mono" id="hero-kicker"></p>
+      <h1 class="hero-headline" id="hero-headline"></h1>
+      <p class="hero-sub" id="hero-sub"></p>
+      <div class="hero-cta"><a href="#ecosystem" class="btn btn-primary" id="hero-cta-primary"></a></div>
+      <ul class="hero-tags mono" id="hero-tags"></ul>
+    </div>
+    <div class="hero-scroll mono" aria-hidden="true">
+      <span>Scroll to explore</span>
+      <svg width="10" height="16" viewBox="0 0 10 16" fill="none"><path d="M5 0V15M5 15L1 11M5 15L9 11" stroke="currentColor" stroke-width="1.2"/></svg>
+    </div>
+  </section>
+
+  <!-- MARQUEE -->
+  <section class="marquee-section" aria-label="Product categories">
+    <div class="marquee" id="marquee"><div class="marquee-track" id="marquee-track"></div></div>
+  </section>
+
+  <!-- BELIEFS -->
+  <section class="beliefs" id="believe">
+    <div class="section-head">
+      <p class="eyebrow mono" id="beliefs-kicker"></p>
+      <h2 class="section-heading" id="beliefs-heading"></h2>
+    </div>
+    <div class="beliefs-list" id="beliefs-list"></div>
+  </section>
+
+  <!-- COMPANY / FRONTS -->
+  <section class="fronts" id="ecosystem">
+    <div class="section-head">
+      <p class="eyebrow mono" id="fronts-kicker"></p>
+      <h2 class="section-heading" id="fronts-heading"></h2>
+      <p class="section-sub" id="fronts-sub"></p>
+    </div>
+    <div class="company-strip">
+      <div class="company-strip-mark" aria-hidden="true">
+        <img src="assets/adigu-logo-white.png" alt="" style="width:100%">
+      </div>
+      <div class="company-strip-text">
+        <p class="company-name" id="fronts-company-name"></p>
+        <p class="company-tag" id="fronts-company-tag"></p>
+        <ul class="meta-list mono" id="fronts-meta"></ul>
+      </div>
+    </div>
+    <!-- PRODUCTS -->
+    <div class="product-list" id="product-list"></div>
+  </section>
+
+  <!-- WHAT WE DO -->
+  <section class="services" id="what-we-do">
+    <div class="section-head services-head">
+      <div><p class="eyebrow mono" id="services-kicker"></p><h2 class="section-heading" id="services-heading"></h2></div>
+      <p class="section-sub services-sub" id="services-sub"></p>
+    </div>
+    <div class="services-grid" id="services-grid"></div>
+  </section>
+
+  <!-- BUILDING -->
+  <section class="building" id="building">
+    <div class="section-head">
+      <p class="eyebrow mono">Built. Shipped. Iterating.</p>
+      <h2 class="section-heading">What we're<br>building.</h2>
+      <p class="section-sub">Our growing ecosystem of products — managed by our team, updated as we build.</p>
+    </div>
+    <div class="building-grid" id="building-grid"></div>
+  </section>
+
+  <!-- PHILOSOPHY -->
+  <section class="philosophy" id="philosophy">
+    <div class="philosophy-inner">
+      <h2 class="philosophy-line philosophy-line--out" id="phil-line-1"></h2>
+      <h2 class="philosophy-line philosophy-line--in" id="phil-line-2"></h2>
+      <div class="philosophy-sub" id="phil-sub"></div>
+      <img class="philosophy-wordmark" id="phil-wordmark" src="assets/adigu-logo-white.png" alt="ADIGU">
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="contact" id="contact">
+    <p class="eyebrow mono" id="contact-kicker"></p>
+    <h2 class="contact-heading" id="contact-heading"></h2>
+    <p class="section-sub" id="contact-sub"></p>
+    <p class="mono contact-meta" id="contact-meta"></p>
+    <ul class="meta-list mono" id="contact-tags"></ul>
+
+    <form class="contact-form" id="contact-form" novalidate>
+      <div class="form-row">
+        <div class="field"><label for="f-name">Your name</label><input type="text" id="f-name" name="name" autocomplete="name" required></div>
+        <div class="field"><label for="f-email">Email address</label><input type="email" id="f-email" name="email" autocomplete="email" required></div>
+      </div>
+      <div class="field"><label for="f-company">Company (optional)</label><input type="text" id="f-company" name="company" autocomplete="organization"></div>
+      <div class="field"><label for="f-message">What are we building?</label><textarea id="f-message" name="message" rows="3" required></textarea></div>
+      <!-- Submissions are emailed to adigu.india@gmail.com via FormSubmit — see
+           submitForm() in the script below. The first-ever submission triggers a
+           one-time confirmation email that must be clicked to activate delivery. -->
+      <button type="submit" class="btn btn-primary" id="contact-submit"></button>
+      <p class="form-status mono" id="form-status" role="status" aria-live="polite"></p>
+    </form>
+  </section>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-top">
+    <div class="footer-logo">
+      <img src="assets/adigu-logo-white.png" alt="">
+      <span>ADIGU</span>
+    </div>
+    <p class="footer-tagline" id="footer-tagline"></p>
+  </div>
+  <div class="footer-row">
+    <a href="https://www.instagram.com/adigu.in?stkn=dTV0dGpqOTJ5OGhk" target="_blank" rel="noopener noreferrer" class="footer-social-link">Instagram</a>
+    <nav class="footer-links-inline" id="footer-links-inline" aria-label="Footer"></nav>
+  </div>
+  <div class="footer-bottom">
+    <p class="mono" id="footer-copyright"></p>
+    <p class="mono">EST. ADIGU</p>
+  </div>
+</footer>
+
+<script>
+"use strict";
+
+/* ==========================================================================
+   ADIGU CONTENT CONFIGURATION
+   Everything editable lives here. Add a product → it appears everywhere
+   automatically. Nothing else in this file needs to change.
+   status: "LIVE" | "BUILDING" | "EXPERIMENT" | "CLASSIFIED" — keep truthful.
+   ========================================================================== */
+const ADIGU = {
+  nav: {
+    links: [
+      { label: "Products", href: "#ecosystem" },
+      { label: "About", href: "about.html" },
+      { label: "Contact", href: "#contact" }
+    ]
+  },
+  hero: {
+    kicker: "ADIGU — WE TURN IDEAS INTO THINGS PEOPLE CAN USE.",
+    headline: ["WE BUILD", "WHAT'S", "NEXT."],
+    sub: "ADIGU is an independent technology company building digital products, applications and experiences for the next generation.",
+    ctaPrimary: { label: "Explore products", href: "#ecosystem" },
+    tags: ["Independent", "Product", "Technology", "Design"]
+  },
+  marquee: ["PRODUCTS", "APPS", "SYSTEMS", "EXPERIENCES", "ADIGU", "TECHNOLOGY"],
+  beliefs: {
+    kicker: "The manifesto",
+    heading: ["What we", "believe"],
+    items: [
+      { number: "01", title: "Build with purpose", text: "We don't build products just to add another app to the world. Every product starts with a problem, an idea, or a better way of doing something." },
+      { number: "02", title: "Simplicity is power", text: "Powerful technology shouldn't feel complicated. We design products that are simple to understand, fast to use and satisfying to experience." },
+      { number: "03", title: "Think beyond the obvious", text: "We experiment, iterate and challenge conventional ideas to discover what technology can become next." }
+    ]
+  },
+  fronts: {
+    kicker: "Divisions",
+    heading: ["One company.", "Many fronts."],
+    sub: "ADIGU is building a growing ecosystem of digital products across productivity, fitness, finance and education.",
+    companyName: "ADIGU TECHNOLOGIES",
+    companyTag: "The company behind the products.",
+    meta: ["Product", "Software", "Design", "Experimentation"]
+  },
+  products: [
+    { id: "leverlerz", cls: "pv-leverlerz", index: "01", name: "LevelerZ", category: "Fitness × Gamification", description: "Turn fitness into a game.", extended: "Complete missions. Build streaks. Earn XP. Level up.", status: "BUILDING" },
+    { id: "form-editor", cls: "pv-form-editor", index: "02", name: "Form Editor", displayName: "FORM EDITOR\nBY ADIGU", category: "Productivity × Documents", description: "A mobile toolkit for working with forms, documents, PDFs, images and signatures — built to make everyday document work simpler.", extended: null, status: "BUILDING" },
+    { id: "arthhai", cls: "pv-arthhai", index: "03", name: "Arthhai", category: "Finance × Education", description: "Making financial knowledge easier to understand, calculate and act upon.", extended: null, status: "BUILDING" },
+    { id: "chequers", cls: "pv-chequers", index: "04", name: "Chequers", category: "Education × Assessment", description: "From Aspirant to Professional.", extended: "A smarter way for CS students to practice, test and improve.", status: "EXPERIMENT" },
+    { id: "next", cls: "pv-next", index: "05", name: "Next Project", category: "In development", description: "Something new is taking shape inside ADIGU.", extended: "Details soon.", status: "CLASSIFIED" }
+  ],
+  services: {
+    kicker: "Capabilities",
+    heading: ["What we", "do"],
+    sub: "Not an agency. Not a service shop. This is what ADIGU actually does.",
+    items: [
+      { number: "01", title: "Product development", text: "From the first idea to a product people can actually use." },
+      { number: "02", title: "Software", text: "Mobile apps, web platforms and digital tools built from the ground up." },
+      { number: "03", title: "Product design", text: "Interfaces designed around clarity, usability and identity." },
+      { number: "04", title: "Technology", text: "Exploring new technologies and turning useful ideas into working systems." },
+      { number: "05", title: "Experimentation", text: "Games, prototypes, concepts and things that don't fit into a box." },
+      { number: "06", title: "Brand & experience", text: "Creating products that don't just work — they feel like something." }
+    ]
+  },
+  philosophy: {
+    lines: ["WE'RE NOT", "BUILDING", "ONE PRODUCT."],
+    reveal: ["WE'RE BUILDING", "THE CAPABILITY", "TO BUILD MANY."],
+    sub: ["Different problems.", "Different products.", "One company."],
+    wordmark: "ADIGU"
+  },
+  contact: {
+    kicker: "Contact",
+    heading: ["Let's build", "the next."],
+    sub: "Have an idea worth building? Tell us — ADIGU reads every serious enquiry.",
+    meta: "ADIGU TECHNOLOGIES",
+    tags: ["Product", "Technology", "Design", "Experimentation"],
+    ctaPrimary: "Let's build"
+  },
+  footer: {
+    tagline: "Independent technology company.",
+    links: [
+      { label: "Privacy", href: "privacy.html" },
+      { label: "Terms", href: "terms.html" },
+      { label: "About", href: "about.html" },
+      { label: "Contact", href: "#contact" }
+    ],
+    copyright: "© 2026 ADIGU. All rights reserved."
+  }
+};
+
+(function () {
+  const $ = (sel, ctx = document) => ctx.querySelector(sel);
+  const $$ = (sel, ctx = document) => Array.from(ctx.querySelectorAll(sel));
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const isTouch = window.matchMedia("(hover: none), (pointer: coarse)").matches;
+
+  const STATUS_CLASS = { LIVE: "is-live", BUILDING: "is-building", EXPERIMENT: "is-experiment", CLASSIFIED: "is-classified" };
+
+  function renderNav() {
+    const links = ADIGU.nav.links.map(l => `<a href="${l.href}">${l.label}</a>`).join("");
+    $("#nav-links").innerHTML = links;
+    $("#nav-mobile").innerHTML = links;
+  }
+
+  function renderHero() {
+    $("#hero-kicker").textContent = ADIGU.hero.kicker;
+    $("#hero-headline").innerHTML = ADIGU.hero.headline.map(line => `<span><em>${line}</em></span>`).join("");
+    $("#hero-sub").textContent = ADIGU.hero.sub;
+    const cta = $("#hero-cta-primary");
+    cta.textContent = ADIGU.hero.ctaPrimary.label;
+    cta.href = ADIGU.hero.ctaPrimary.href;
+    $("#hero-tags").innerHTML = ADIGU.hero.tags.map(t => `<li>${t}</li>`).join("");
+  }
+
+  function renderMarquee() {
+    const items = ADIGU.marquee.map(w => `<span class="marquee-item">${w}</span>`).join("");
+    $("#marquee-track").innerHTML = items + items;
+  }
+
+  function renderBeliefs() {
+    $("#beliefs-kicker").textContent = ADIGU.beliefs.kicker;
+    $("#beliefs-heading").innerHTML = ADIGU.beliefs.heading.join("<br>");
+    $("#beliefs-list").innerHTML = ADIGU.beliefs.items.map(item => `
+      <div class="belief-item reveal">
+        <div class="belief-number mono">${item.number}</div>
+        <div class="belief-body">
+          <h3 class="belief-title">${item.title}</h3>
+          <p class="belief-text">${item.text}</p>
+        </div>
+      </div>`).join("");
+  }
+
+  function renderFronts() {
+    $("#fronts-kicker").textContent = ADIGU.fronts.kicker;
+    $("#fronts-heading").innerHTML = ADIGU.fronts.heading.join("<br>");
+    $("#fronts-sub").textContent = ADIGU.fronts.sub;
+    $("#fronts-company-name").textContent = ADIGU.fronts.companyName;
+    $("#fronts-company-tag").textContent = ADIGU.fronts.companyTag;
+    $("#fronts-meta").innerHTML = ADIGU.fronts.meta.map(m => `<li>${m}</li>`).join("");
+
+    $("#product-list").innerHTML = ADIGU.products.map(p => `
+      <div class="product-row reveal" data-product="${p.id}" data-cls="${p.cls}" tabindex="0">
+        <div class="p-index mono">${p.index}</div>
+        <div class="p-name">${(p.displayName || p.name).toUpperCase()}</div>
+        <div class="p-details">
+          <div class="p-category">${p.category}</div>
+          <div class="p-desc">${p.description}${p.extended ? " " + p.extended : ""}</div>
+        </div>
+        <div class="p-status"><span class="status-dot ${STATUS_CLASS[p.status] || ""}"></span>${p.status}</div>
+      </div>`).join("");
+  }
+
+  function renderServices() {
+    $("#services-kicker").textContent = ADIGU.services.kicker;
+    $("#services-heading").innerHTML = ADIGU.services.heading.join("<br>");
+    $("#services-sub").textContent = ADIGU.services.sub;
+    $("#services-grid").innerHTML = ADIGU.services.items.map(s => `
+      <div class="service-item reveal">
+        <div class="service-number mono">${s.number}</div>
+        <h3 class="service-title">${s.title}</h3>
+        <p class="service-text">${s.text}</p>
+      </div>`).join("");
+  }
+
+  function renderBuilding() {
+    $("#building-grid").innerHTML = ADIGU.products.map(p => `
+      <div class="building-card reveal">
+        <div class="building-card-media ${p.cls}"></div>
+        <div class="building-card-body">
+          <div class="building-card-top">
+            <span class="building-status mono">${p.status}</span>
+            <span class="building-index mono">${p.index}</span>
+          </div>
+          <h3 class="building-name">${p.name}</h3>
+          <p class="building-desc">${p.description}</p>
+        </div>
+      </div>`).join("");
+  }
+
+  function renderPhilosophy() {
+    $("#phil-line-1").innerHTML = ADIGU.philosophy.lines.join("<br>");
+    $("#phil-line-2").innerHTML = ADIGU.philosophy.reveal.join("<br>");
+    $("#phil-sub").innerHTML = ADIGU.philosophy.sub.join("<br>");
+    // phil-wordmark is now the real logo image (see HTML) — no text to set
+  }
+
+  function renderContact() {
+    $("#contact-kicker").textContent = ADIGU.contact.kicker;
+    $("#contact-heading").innerHTML = ADIGU.contact.heading.join("<br>");
+    $("#contact-sub").textContent = ADIGU.contact.sub;
+    $("#contact-meta").textContent = ADIGU.contact.meta;
+    $("#contact-tags").innerHTML = ADIGU.contact.tags.map(t => `<li>${t}</li>`).join("");
+    $("#contact-submit").textContent = ADIGU.contact.ctaPrimary;
+  }
+
+  function renderFooter() {
+    $("#footer-tagline").textContent = ADIGU.footer.tagline;
+    $("#footer-links-inline").innerHTML = ADIGU.footer.links
+      .map(l => `<a href="${l.href}">${l.label}</a>`)
+      .join('<span class="footer-dot">·</span>');
+    $("#footer-copyright").textContent = ADIGU.footer.copyright;
+  }
+
+  function setupNav() {
+    const nav = $("#nav");
+    const onScroll = () => nav.classList.toggle("is-scrolled", window.scrollY > 12);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    const toggle = $("#nav-toggle");
+    const mobile = $("#nav-mobile");
+    toggle.addEventListener("click", () => {
+      const isOpen = mobile.classList.toggle("is-open");
+      toggle.setAttribute("aria-expanded", String(isOpen));
+    });
+    $$("#nav-mobile a").forEach(a => a.addEventListener("click", () => {
+      mobile.classList.remove("is-open");
+      toggle.setAttribute("aria-expanded", "false");
+    }));
+  }
+
+  function setupReveals() {
+    if (reducedMotion) { $$(".reveal").forEach(el => el.classList.add("is-visible")); return; }
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) { entry.target.classList.add("is-visible"); io.unobserve(entry.target); }
+      });
+    }, { threshold: 0.15, rootMargin: "0px 0px -60px 0px" });
+    $$(".reveal").forEach(el => io.observe(el));
+  }
+
+  function setupPhilosophy() {
+    const section = $("#philosophy");
+    const line1 = $("#phil-line-1"), line2 = $("#phil-line-2"), sub = $("#phil-sub"), wordmark = $("#phil-wordmark");
+    if (reducedMotion) { [line1, line2, sub, wordmark].forEach(el => el.classList.add("is-visible")); return; }
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          line1.classList.add("is-visible");
+          setTimeout(() => line2.classList.add("is-visible"), 500);
+          setTimeout(() => sub.classList.add("is-visible"), 1100);
+          setTimeout(() => wordmark.classList.add("is-visible"), 1500);
+          io.unobserve(section);
+        }
+      });
+    }, { threshold: 0.15, rootMargin: "0px 0px -80px 0px" });
+    io.observe(section);
+  }
+
+  function setupCursor() {
+    if (isTouch || reducedMotion) return;
+    const dot = $(".cursor-dot"), ring = $(".cursor-ring"), label = $(".cursor-label");
+    let x = 0, y = 0, rx = 0, ry = 0, active = false;
+
+    window.addEventListener("mousemove", (e) => {
+      x = e.clientX; y = e.clientY;
+      dot.style.transform = `translate(${x}px, ${y}px) translate(-50%,-50%)`;
+      if (!active) { ring.classList.add("is-active"); active = true; }
+    });
+    (function raf() {
+      rx += (x - rx) * 0.18; ry += (y - ry) * 0.18;
+      ring.style.transform = `translate(${rx}px, ${ry}px) translate(-50%,-50%)`;
+      requestAnimationFrame(raf);
+    })();
+
+    $$("a, button, .product-row, input, textarea").forEach(el => {
+      el.addEventListener("mouseenter", () => ring.classList.add("is-hover"));
+      el.addEventListener("mouseleave", () => ring.classList.remove("is-hover"));
+    });
+    $$(".product-row").forEach(el => {
+      el.addEventListener("mouseenter", () => { ring.classList.add("is-view"); label.textContent = "VIEW"; });
+      el.addEventListener("mouseleave", () => { ring.classList.remove("is-view"); label.textContent = ""; });
+    });
+  }
+
+  function setupProductPreview() {
+    if (isTouch || reducedMotion) return;
+    const preview = document.createElement("div");
+    preview.className = "product-preview";
+    preview.innerHTML = `<span class="product-preview-label mono">PREVIEW</span>`;
+    document.body.appendChild(preview);
+
+    let x = 0, y = 0;
+    document.addEventListener("mousemove", (e) => {
+      x = e.clientX; y = e.clientY;
+      preview.style.left = x + "px"; preview.style.top = y + "px";
+    });
+    $$(".product-row").forEach(row => {
+      row.addEventListener("mouseenter", () => {
+        preview.className = "product-preview is-active " + row.dataset.cls;
+      });
+      row.addEventListener("mouseleave", () => { preview.classList.remove("is-active"); });
+      row.addEventListener("click", () => row.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "center" }));
+    });
+  }
+
+  /* Sends every enquiry to adigu.india@gmail.com via FormSubmit (formsubmit.co) —
+     a free service that emails plain form submissions, no backend or signup needed.
+     IMPORTANT: the first submission ever sent will trigger a one-time confirmation
+     email to adigu.india@gmail.com — that link must be clicked once to activate
+     delivery, otherwise later submissions will silently not arrive. */
+  const CONTACT_ENDPOINT = "https://formsubmit.co/ajax/adigu.india@gmail.com";
+
+  function submitForm(data) {
+    return fetch(CONTACT_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify({
+        _subject: "New enquiry — ADIGU website",
+        name: data.name,
+        email: data.email,
+        company: data.company || "—",
+        message: data.message
+      })
+    }).then(res => {
+      if (!res.ok) throw new Error("Request failed");
+      return res.json();
+    });
+  }
+
+  function setupForm() {
+    const form = $("#contact-form");
+    const status = $("#form-status");
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (!form.checkValidity()) {
+        status.textContent = "Fill in your name, email and message.";
+        status.classList.remove("is-success");
+        return;
+      }
+      status.textContent = "Sending...";
+      status.classList.remove("is-success");
+      submitForm(Object.fromEntries(new FormData(form)))
+        .then(() => {
+          status.textContent = "Thank you. We'll be in touch.";
+          status.classList.add("is-success");
+          form.reset();
+        })
+        .catch(() => {
+          status.textContent = "Something went wrong — please email us directly at adigu.india@gmail.com.";
+          status.classList.remove("is-success");
+        });
+    });
+  }
+
+  function setupLoader() {
+    const loader = $("#loader");
+    const remove = () => loader && loader.remove();
+    loader.addEventListener("animationend", remove);
+    setTimeout(remove, reducedMotion ? 100 : 2200); // safety fallback
+  }
+
+  function init() {
+    renderNav(); renderHero(); renderMarquee(); renderBeliefs(); renderFronts();
+    renderServices(); renderBuilding(); renderPhilosophy(); renderContact(); renderFooter();
+    setupNav(); setupReveals(); setupPhilosophy(); setupCursor(); setupProductPreview(); setupForm(); setupLoader();
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
+})();
+</script>
+</body>
+</html>
